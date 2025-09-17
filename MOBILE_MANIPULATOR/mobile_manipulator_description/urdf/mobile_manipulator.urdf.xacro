@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot name="mobile_manipulator" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+  <xacro:include filename="$(find alphabot_description)/urdf/alphabot.urdf.xacro"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/linear_guide.xacro"/>
+  <xacro:include filename="$(find rm_description)/urdf/rm_75_gazebo.urdf"/>
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/mobile_manipulator_ros_contol.xacro"/>
+
+
+
+  <joint name="chassis_to_column" type="fixed">
+    <parent link="chassis_link"/>  
+    <child  link="column"/>        
+    <origin xyz="0 0 0.1" rpy="0 0 1.57"/>
+  </joint>
+
+
+
+  <joint name="slider_to_arm_base" type="fixed">
+    <parent link="slider"/>        
+    <child  link="base_link"/>     
+    <origin xyz="0 -0.33 0.06" rpy="0 0 0"/>
+  </joint>
+
+
+
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <robot_param>robot_description</robot_param>
+      <robot_param_node>robot_state_publisher</robot_param_node>
+      <parameters>$(find mobile_manipulator_control)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+
+      <gazebo>
+        <plugin name="amr_elevator_trigger_plugin" filename="libamr_elevator_trigger_plugin.so">
+
+        <target_pose_enter>
+            <x>-3.498</x>
+            <y>0.017</y>
+            <z>0.534</z>
+        </target_pose_enter>
+
+        <target_pose_exit>
+            <x>5.0</x>
+            <y>1.5</y>
+            <z>0.0</z>
+        </target_pose_exit>
+
+        <tolerance>0.5</tolerance>
+        </plugin>
+    </gazebo>
+
+  <xacro:include filename="$(find mobile_manipulator_description)/urdf/camera_module.urdf.xacro"/>
+
+  <link name="cylinder_link">
+  <visual>
+    <geometry>
+      <cylinder radius="0.01" length="0.71"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.7 0.7 0.7 1"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <cylinder radius="0.01" length="0.71"/>
+    </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+</link>
+
+ <joint name="rod_to_camera" type="fixed">
+    <parent link="camera_link_base"/>        
+    <child  link="cylinder_link"/>     
+    <origin xyz="0.01 0 -0.36" rpy="0 0 0"/>
+  </joint>
+
+    <gazebo reference="cylinder_link">
+      <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <xacro:intel_d435_camera/>
+  <joint name="sliderto_camera" type="fixed">
+    <parent link="link_base"/>        
+    <child  link="camera_link_base"/>     
+    <origin xyz="-0.3 0.3 0.85" rpy="0 0 0"/>
+  </joint>
+
+</robot>

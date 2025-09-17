@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>box_spawner</name>
+  <version>0.1.0</version>
+  <description>Gazebo plugin to spawn boxes via a ROS 2 service</description>
+  <maintainer email="syedazif321@gmail.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- Required build and run dependencies -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>std_srvs</depend>
+  <depend>gazebo_ros</depend>
+
+  <!-- Export plugin info -->
+  <export>
+    <build_type>ament_cmake</build_type>
+    <gazebo_ros plugin_path="lib" />
+  </export>
+</package>

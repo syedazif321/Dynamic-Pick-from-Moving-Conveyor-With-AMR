@@ -88,12 +88,7 @@ def generate_launch_description():
         arguments=["rm_group_controller", "-c", "/controller_manager"],
         output="screen"
     )
-    slider_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["slider_position_controller", "-c", "/controller_manager"],
-        output="screen"
-    )
+
 
     # --- Event chaining for controllers ---
     load_jsb = RegisterEventHandler(
@@ -102,9 +97,7 @@ def generate_launch_description():
     load_arm = RegisterEventHandler(
         OnProcessExit(target_action=jsb_spawner, on_exit=[arm_spawner])
     )
-    load_slider = RegisterEventHandler(
-        OnProcessExit(target_action=arm_spawner, on_exit=[slider_spawner])
-    )
+
 
     # --- Static TFs ---
     # static_tf_camera_mount = Node(
@@ -158,7 +151,7 @@ def generate_launch_description():
         spawner,
         load_jsb,
         load_arm,
-        load_slider,
+        
         # static_tf_camera_mount,
         # static_tf_map_to_odom,
         # static_tf_world_to_map,

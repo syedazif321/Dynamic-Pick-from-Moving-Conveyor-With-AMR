@@ -1,0 +1,3 @@
+float64 distance   # Desired movement in meters (or radians depending on your joint type)
+---
+bool success

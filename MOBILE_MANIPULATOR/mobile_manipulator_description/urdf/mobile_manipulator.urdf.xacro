@@ -3,24 +3,17 @@
 
 
   <xacro:include filename="$(find alphabot_description)/urdf/alphabot.urdf.xacro"/>
-  <xacro:include filename="$(find mobile_manipulator_description)/urdf/linear_guide.xacro"/>
   <xacro:include filename="$(find rm_description)/urdf/rm_75_gazebo.urdf"/>
   <xacro:include filename="$(find mobile_manipulator_description)/urdf/mobile_manipulator_ros_contol.xacro"/>
 
 
 
-  <joint name="chassis_to_column" type="fixed">
-    <parent link="chassis_link"/>  
-    <child  link="column"/>        
-    <origin xyz="0 0 0.1" rpy="0 0 1.57"/>
-  </joint>
 
 
-
-  <joint name="slider_to_arm_base" type="fixed">
-    <parent link="slider"/>        
+  <joint name="chassis_link_to_arm_base" type="fixed">
+    <parent link="chassis_link"/>        
     <child  link="base_link"/>     
-    <origin xyz="0 -0.33 0.06" rpy="0 0 0"/>
+    <origin xyz="0 0.1 0.4" rpy="0 0 -1.57"/>
   </joint>
 
 
@@ -55,41 +48,15 @@
 
   <xacro:include filename="$(find mobile_manipulator_description)/urdf/camera_module.urdf.xacro"/>
 
-  <link name="cylinder_link">
-  <visual>
-    <geometry>
-      <cylinder radius="0.01" length="0.71"/>
-    </geometry>
-    <material name="Grey">
-      <color rgba="0.7 0.7 0.7 1"/>
-    </material>
-  </visual>
-  <collision>
-    <geometry>
-      <cylinder radius="0.01" length="0.71"/>
-    </geometry>
-  </collision>
-  <inertial>
-    <mass value="0.5"/>
-    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
-  </inertial>
-</link>
-
- <joint name="rod_to_camera" type="fixed">
-    <parent link="camera_link_base"/>        
-    <child  link="cylinder_link"/>     
-    <origin xyz="0.01 0 -0.36" rpy="0 0 0"/>
-  </joint>
-
-    <gazebo reference="cylinder_link">
-      <material>Gazebo/Grey</material>
+      <gazebo reference="camera_link_base">
+      <material>Gazebo/Orange</material>
   </gazebo>
 
   <xacro:intel_d435_camera/>
   <joint name="sliderto_camera" type="fixed">
-    <parent link="link_base"/>        
+    <parent link="Link7"/>        
     <child  link="camera_link_base"/>     
-    <origin xyz="-0.3 0.3 0.85" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 -1.57 -1.57"/>
   </joint>
 
 </robot>

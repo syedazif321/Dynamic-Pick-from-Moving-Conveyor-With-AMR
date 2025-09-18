@@ -5,23 +5,23 @@
 
     <link name="camera_link_base">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <origin xyz="0 0 0" rpy="1.57 3.14 1.57"/>
         <geometry>
-          <mesh filename="$(find mobile_manipulator_description)/meshes/realsense.dae" scale="1 1 1"/>
+          <mesh filename="$(find mobile_manipulator_description)/meshes/d435_with_cam_stand.stl" scale="1 1 1"/>
         </geometry>
         <material name="Grey">
           <color rgba="0.8 0.8 0.8 1.0"/>
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 1.57"/>
+        <origin xyz="0 0 0" rpy="1.57 3.14 1.57"/>
         <geometry>
-          <mesh filename="$(find mobile_manipulator_description)/meshes/realsense.dae" scale="1 1 1"/>
+          <mesh filename="$(find mobile_manipulator_description)/meshes/d435_with_cam_stand.stl" scale="1 1 1"/>
         </geometry>
       </collision>
       <inertial>
         <origin xyz="0 0 0" rpy="1.57 0 1.57"/>
-        <mass value="0.0615752"/>
+        <mass value="0.002"/>
         <inertia ixx="9.108e-05" ixy="0" ixz="0" iyy="2.51e-06" iyz="0" izz="8.931e-05"/>
       </inertial>
     </link>

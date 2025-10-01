@@ -5,6 +5,7 @@
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <thread> 
+#include "msg_gazebo/srv/attach_detach.hpp" // NEW: Header for the attach service
 
 using namespace std::chrono_literals;
 
@@ -18,7 +19,7 @@ DynamicPickController::DynamicPickController(const rclcpp::NodeOptions & options
       tf_listener_(*tf_buffer_),
       control_state_(IDLE)
 {
-    
+    // 1. Subscriptions
     box_state_sub_ = create_subscription<msg_gazebo::msg::BoxState>(
         "/box_state_dynamic", 10,
         std::bind(&DynamicPickController::box_state_callback, this, std::placeholders::_1));
@@ -27,12 +28,16 @@ DynamicPickController::DynamicPickController(const rclcpp::NodeOptions & options
         "/odom", 10, 
         std::bind(&DynamicPickController::odom_callback, this, std::placeholders::_1));
     
-    // 3. Service
+    // 2. Services
     start_service_ = create_service<std_srvs::srv::Trigger>(
         "start_dynamic_pick",
         std::bind(&DynamicPickController::start_pick_service, this, std::placeholders::_1, std::placeholders::_2));
         
+    // NEW: Create client for the Attach/Detach service
+    // NOTE: 'attach_client_' must be defined in your .hpp file
+    attach_client_ = create_client<msg_gazebo::srv::AttachDetach>("/AttachDetach");
     
+    // 3. Control Loop Timer
     control_timer_ = create_wall_timer(
         20ms, 
         std::bind(&DynamicPickController::control_loop, this));
@@ -45,7 +50,6 @@ bool DynamicPickController::initialize_move_group()
 {
     RCLCPP_INFO(logger_, "Attempting to initialize MoveGroupInterface...");
     
- 
     try {
         move_group_ = std::make_unique<moveit::planning_interface::MoveGroupInterface>(
             shared_from_this(), arm_group_name_);
@@ -80,13 +84,22 @@ bool DynamicPickController::start_pick_service(
 {
     std::lock_guard<std::mutex> lock(data_mutex_);
     
-    // *** FIX: Initialization moved here, where 'shared_from_this()' is safe. ***
+    // Initialization moved here for safety
     if (!move_group_ && !initialize_move_group()) {
         RCLCPP_ERROR(logger_, "Service rejected: MoveGroup initialization failed.");
         response->success = false;
         response->message = "MoveGroup failed to initialize.";
         return true;
     }
+    
+    // Check if the AttachDetach service is available (important for picking)
+    if (!attach_client_->wait_for_service(std::chrono::seconds(1))) {
+        RCLCPP_ERROR(logger_, "Service rejected: /AttachDetach service not available.");
+        response->success = false;
+        response->message = "/AttachDetach service not available.";
+        return true;
+    }
+
 
     if (!move_group_) {
         RCLCPP_ERROR(logger_, "Service rejected: MoveGroupInterface is NULL.");
@@ -131,13 +144,13 @@ void DynamicPickController::control_loop()
     
     tf2::Transform T_w_b;
     tf2::fromMsg(odom.pose.pose, T_w_b);
-    tf2::Matrix3x3 R_b_w = T_w_b.getBasis().inverse(); // R_b_w is transpose of R_w_b
+    tf2::Matrix3x3 R_b_w = T_w_b.getBasis().inverse(); 
 
     tf2::Vector3 v_box_tf(v_box_world.x, v_box_world.y, v_box_world.z);
     tf2::Vector3 v_base_tf(v_base_world.x, v_base_world.y, v_base_world.z);
     
     tf2::Vector3 v_diff_world = v_box_tf - v_base_tf; 
-    tf2::Vector3 v_target_base_tf = R_b_w * v_diff_world; // Velocity of Box relative to Base in Base Frame
+    tf2::Vector3 v_target_base_tf = R_b_w * v_diff_world; 
 
     geometry_msgs::msg::PoseStamped target_pose_base;
     try {
@@ -166,7 +179,7 @@ void DynamicPickController::control_loop()
 
     std::vector<geometry_msgs::msg::Pose> waypoints;
     geometry_msgs::msg::Pose approach_pose = target_pose_base.pose;
-    approach_pose.position.z += 0.05; // Approach from slightly above
+    approach_pose.position.z += 0.05; // Approach from slightly above (5cm offset)
     waypoints.push_back(approach_pose);
     
     moveit_msgs::msg::RobotTrajectory trajectory;
@@ -181,10 +194,54 @@ void DynamicPickController::control_loop()
     }
 }
 
-void DynamicPickController::initiate_grasp_sequence(const geometry_msgs::msg::Pose& /*final_pose*/)
+void DynamicPickController::initiate_grasp_sequence(const geometry_msgs::msg::Pose& final_pose)
 {
-    RCLCPP_INFO(logger_, "GRASP: Commanding suction ON.");
+    // --- 1. FINAL DESCENT MOTION ---
+    RCLCPP_INFO(logger_, "GRASP: Executing final descent.");
 
+    std::vector<geometry_msgs::msg::Pose> waypoints;
+    waypoints.push_back(final_pose); // Target: Box surface
+    
+    moveit_msgs::msg::RobotTrajectory descent_trajectory;
+    const double eef_step = 0.005; 
+    
+    double fraction = move_group_->computeCartesianPath(waypoints, eef_step, 0.0, descent_trajectory);
+
+    if (fraction > 0.95) { // Ensure almost complete descent
+        move_group_->execute(descent_trajectory);
+        RCLCPP_INFO(logger_, "GRASP: Descent complete. Attempting attachment.");
+    } else {
+        RCLCPP_ERROR(logger_, "GRASP: Failed to compute final descent path (Fraction: %.2f). Proceeding anyway.", fraction);
+    }
+    
+    // --- 2. ATTACHMENT (Service Call) ---
+    // The robot's tool link is 'Link7' and the box is 'aruco_box'
+    if (attach_client_->wait_for_service(std::chrono::milliseconds(100))) {
+        auto request = std::make_shared<msg_gazebo::srv::AttachDetach::Request>();
+        request->model1 = "mobile_manipulator"; 
+        request->link1 = "Link7";            // End-effector link name
+        request->model2 = "aruco_box";      // Box model name
+        request->link2 = "link_0";           // Box link name
+        request->attach = true;
+
+        auto future = attach_client_->async_send_request(request);
+        
+        // Wait for the service response (blocking, but quick)
+        if (rclcpp::spin_until_future_complete(shared_from_this(), future) == rclcpp::FutureReturnCode::SUCCESS) {
+            if (future.get()->success) {
+                RCLCPP_INFO(logger_, "GRASP: Attachment successful! Box should now move with the robot.");
+            } else {
+                RCLCPP_ERROR(logger_, "GRASP: Attachment service failed: %s", future.get()->message.c_str());
+            }
+        } else {
+            RCLCPP_ERROR(logger_, "GRASP: Attachment service call interrupted or timed out.");
+        }
+    } else {
+        RCLCPP_ERROR(logger_, "GRASP: AttachDetach service not available during grasping phase.");
+    }
+
+
+    // --- 3. RETRACT ---
     control_state_ = RETRACTING;
     RCLCPP_INFO(logger_, "Grasp complete. Retracting arm to home position.");
     
@@ -200,7 +257,7 @@ void DynamicPickController::initiate_grasp_sequence(const geometry_msgs::msg::Po
     RCLCPP_INFO(logger_, "Pick cycle complete. System IDLE.");
 }
 
-} 
+} // namespace pipeline_manipulator
 
 int main(int argc, char * argv[])
 {

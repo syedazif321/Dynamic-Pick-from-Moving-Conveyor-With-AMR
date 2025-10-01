@@ -3,7 +3,7 @@
 <package format="3">
   <name>msg_gazebo</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Custom messages and services for dynamic picking simulation.</description>
   <maintainer email="syedazif321@gmail.com">azif</maintainer>
   <license>TODO: License declaration</license>
 
@@ -14,6 +14,10 @@
 
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
+  
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+
   <member_of_group>rosidl_interface_packages</member_of_group>
 
   <export>

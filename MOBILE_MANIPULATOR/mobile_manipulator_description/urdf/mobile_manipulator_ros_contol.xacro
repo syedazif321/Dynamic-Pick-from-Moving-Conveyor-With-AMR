@@ -7,11 +7,11 @@
     </hardware>
 
 
-    <joint name="slider_joint">
+    <!-- <joint name="slider_joint">
       <command_interface name="position"/>
       <state_interface name="position"/>
       <state_interface name="velocity"/>
-    </joint>
+    </joint> -->
 
 
     <joint name="joint1">
@@ -52,7 +52,7 @@
 
   </ros2_control>
 
-  <transmission name="slider_trans">
+  <!-- <transmission name="slider_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="slider_joint">
       <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
@@ -61,7 +61,7 @@
       <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
-  </transmission>
+  </transmission> -->
 
   <transmission name="joint1_trans">
     <type>transmission_interface/SimpleTransmission</type>

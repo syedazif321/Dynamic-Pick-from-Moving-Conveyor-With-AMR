@@ -26,15 +26,14 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
-
-# --- For JSON and Nav2 Actions ---
+find_package(nav_msgs REQUIRED)
+find_package(msg_gazebo REQUIRED)
 find_package(nav2_msgs REQUIRED) 
 find_package(control_msgs REQUIRED)
-find_package(msg_gazebo REQUIRED)  # You confirmed this exists
-include_directories(/usr/include)
+find_package(SQLite3 REQUIRED) 
 
 # ------------------------------------------------------------------------------
-# Vision Node
+# Vision Node (vision_node)
 # ------------------------------------------------------------------------------
 add_executable(vision_node src/vision_node.cpp)
 ament_target_dependencies(vision_node
@@ -49,66 +48,79 @@ ament_target_dependencies(vision_node
   tf2_ros
   tf2_geometry_msgs
   message_filters
+  msg_gazebo
 )
 
 target_include_directories(vision_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
+target_link_libraries(vision_node ${OpenCV_LIBS})
 
 # ------------------------------------------------------------------------------
-# Pick Controller Node
+# Pick Controller Node (dynamic_pick_controller)
 # ------------------------------------------------------------------------------
-add_executable(pick_controller src/pick_controller.cpp)
-ament_target_dependencies(pick_controller
+add_executable(dynamic_pick_controller src/pick_controller.cpp)
+ament_target_dependencies(dynamic_pick_controller
   rclcpp
   std_msgs
   geometry_msgs
   std_srvs
   moveit_ros_planning_interface
+  tf2_ros                             
+  tf2_geometry_msgs                   
+  nav_msgs                            
+  msg_gazebo                          
 )
 
-target_include_directories(pick_controller PUBLIC
+target_include_directories(dynamic_pick_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
+target_link_libraries(dynamic_pick_controller
+  ${moveit_ros_planning_interface_LIBRARIES} 
+  ${msg_gazebo_LIBRARIES}
+)
+
 # ------------------------------------------------------------------------------
-# Pipeline FSM Node (Core)
+# Pipeline FSM Node (Core) - COMMENTED OUT
 # ------------------------------------------------------------------------------
-add_executable(pipeline_fsm
-  src/main.cpp
-  src/pipeline_fsm.cpp
-)
+# add_executable(pipeline_fsm
+#   src/main.cpp
+#   src/pipeline_fsm.cpp
+# )
 
-target_link_libraries(pipeline_fsm
-  sqlite3  
-)
+# ament_target_dependencies(pipeline_fsm
+#   rclcpp
+#   rclcpp_action
+#   std_msgs
+#   geometry_msgs
+#   nav2_msgs
+#   control_msgs
+#   std_srvs
+#   msg_gazebo
+#   moveit_ros_planning_interface
+# )
 
-ament_target_dependencies(pipeline_fsm
-  rclcpp
-  rclcpp_action
-  std_msgs
-  geometry_msgs
-  nav2_msgs
-  control_msgs
-  std_srvs
-  msg_gazebo
+# target_include_directories(pipeline_fsm PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include>
+# )
 
-)
-
-target_include_directories(pipeline_fsm PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
+# target_link_libraries(pipeline_fsm
+#   ${SQLite3_LIBRARIES}  
+#   ${moveit_ros_planning_interface_LIBRARIES} 
+#   ${msg_gazebo_LIBRARIES}
+# )
 
 # ------------------------------------------------------------------------------
 # Install
 # ------------------------------------------------------------------------------
 install(TARGETS
   vision_node
-  pick_controller
-  pipeline_fsm
+  dynamic_pick_controller
+  # pipeline_fsm # Removed FSM from installation list
   DESTINATION lib/${PROJECT_NAME}
 )
 

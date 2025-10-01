@@ -15,8 +15,8 @@
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
-
-  <depend>cv_bridge</depend>
+  
+  <depend>nav_msgs</depend>           <depend>cv_bridge</depend>
   <depend>opencv2</depend>
 
   <depend>tf2</depend>
@@ -28,8 +28,7 @@
   <depend>moveit_ros_planning_interface</depend>
 
   <depend>control_msgs</depend>
-  <depend>msg_gazebo</depend>
-  <depend>nlohmann_json_vendor</depend>
+  <depend>msg_gazebo</depend>           <depend>nlohmann_json_vendor</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

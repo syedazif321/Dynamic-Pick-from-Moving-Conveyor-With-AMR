@@ -601,7 +601,7 @@
     </light>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-1.01895 -0.943212 24.149 0 1.5058 -0.002028</pose>
+        <pose>0.440444 -2.81148 4.56862 -0 0.9698 1.29797</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -1075,10 +1075,20 @@
       <pose>-6.91099 6.67572 0 0 0 -1.57228</pose>
     </model>
     <state world_name='default'>
-      <sim_time>9854 143000000</sim_time>
-      <real_time>182 920878841</real_time>
-      <wall_time>1758189106 259043229</wall_time>
-      <iterations>165466</iterations>
+      <sim_time>9983 485000000</sim_time>
+      <real_time>156 595404423</real_time>
+      <wall_time>1759300129 578113443</wall_time>
+      <iterations>129342</iterations>
+      <model name='aruco_box'>
+        <pose>0.746534 -0.25708 0.882945 -1.57082 -6.9e-05 0.000307</pose>
+        <scale>1 1 1</scale>
+        <link name='link_0'>
+          <pose>0.746534 -0.25708 0.882945 -1.57082 -6.9e-05 0.000307</pose>
+          <velocity>0.001629 0.000463 -0.012472 -0.007876 -0.004403 0.000293</velocity>
+          <acceleration>0 0 -9.8 0 -0 0</acceleration>
+          <wrench>0 0 -9.8 0 -0 0</wrench>
+        </link>
+      </model>
       <model name='aws_robomaker_warehouse_ClutteringA_01_016'>
         <pose>3.74423 11.1151 -0.017477 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1190,19 +1200,19 @@
         </link>
       </model>
       <model name='conveyor_belt3'>
-        <pose>0.67183 0.075335 0.081941 0 1.2e-05 0.027361</pose>
+        <pose>0.668357 0.076446 0.081923 2.4e-05 -2.7e-05 0.02739</pose>
         <scale>1 1 1</scale>
         <link name='belt_moving'>
-          <pose>0.67249 0.051521 0.827941 0 1.2e-05 0.027361</pose>
-          <velocity>-0.00523 -7.5e-05 0.003845 -0.005365 -0.006928 5e-06</velocity>
-          <acceleration>-4.93644 -0.13562 14.0364 2.80526 0.943539 -2.81244</acceleration>
-          <wrench>-69.1102 -1.89869 196.509 0 -0 0</wrench>
+          <pose>0.668976 0.053103 0.827922 2.4e-05 -2.7e-05 0.02739</pose>
+          <velocity>0.008143 0.000223 -0.015294 0.024497 0.011893 -0.000296</velocity>
+          <acceleration>8.26868 0.226542 -4.79663 -0.097152 -1.52069 2.83743</acceleration>
+          <wrench>115.762 3.17159 -67.1528 0 -0 0</wrench>
         </link>
         <link name='belt_visual'>
-          <pose>0.67183 0.075335 0.081941 0 1.2e-05 0.027361</pose>
-          <velocity>0 -0 0.003712 -0.005409 -0.007325 0</velocity>
-          <acceleration>0.293284 -0.060603 13.9034 -1.58673 -0.800372 0.324308</acceleration>
-          <wrench>146.642 -30.3013 6951.68 0 -0 0</wrench>
+          <pose>0.668357 0.076446 0.081923 2.4e-05 -2.7e-05 0.02739</pose>
+          <velocity>-0.000278 -7.4e-05 -0.014713 0.02448 0.011966 -0.000313</velocity>
+          <acceleration>-0.152958 -0.070991 -4.21611 0.316273 -0.401899 -0.298703</acceleration>
+          <wrench>-76.4791 -35.4954 -2108.06 0 -0 0</wrench>
         </link>
       </model>
       <model name='grey_wall_0'>
@@ -1360,16 +1370,6 @@
         <scale>1 1 1</scale>
         <link name='link'>
           <pose>-6.90394 18.5733 1.4 0 -0 1.5708</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='realsense_d435'>
-        <pose>0.071927 -1.09724 1.31228 1.79922 -0 1.57</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>0.071927 -1.09724 1.31228 1.79922 -0 1.57</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -1956,97 +1956,6 @@
       </plugin>
       <pose>-1.4786 -1.41697 0.034224 0 -0 -1.59008</pose>
     </model>
-    <model name='realsense_d435'>
-      <link name='link'>
-        <inertial>
-          <mass>0.0615752</mass>
-          <inertia>
-            <ixx>9.108e-05</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2.51e-06</iyy>
-            <iyz>0</iyz>
-            <izz>8.931e-05</izz>
-          </inertia>
-          <pose>0 0 0 1.57 -0 1.57</pose>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <mesh>
-              <uri>model://RealSense_D435/meshes/realsense.dae</uri>
-            </mesh>
-          </geometry>
-          <max_contacts>10</max_contacts>
-          <surface>
-            <contact>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <mesh>
-              <uri>model://RealSense_D435/meshes/realsense.dae</uri>
-              <submesh>
-                <name>RealSense</name>
-                <center>0</center>
-              </submesh>
-            </mesh>
-          </geometry>
-          <material>
-            <diffuse>1 1 1 1</diffuse>
-            <specular>1 1 1 1</specular>
-            <pbr>
-              <metal>
-                <albedo_map>model://RealSense_D435/materials/textures/RealSense_Albedo.png</albedo_map>
-                <normal_map>model://RealSense_D435/materials/textures/RealSense_Normal.png</normal_map>
-                <metalness_map>model://RealSense_D435/materials/textures/RealSense_Metalness.png</metalness_map>
-                <roughness_map>model://RealSense_D435/materials/textures/RealSense_Roughness.png</roughness_map>
-              </metal>
-            </pbr>
-            <script>
-              <uri>model://RealSense_D435/materials/scripts/</uri>
-              <uri>model://RealSense_D435/materials/textures/</uri>
-              <name>UrbanTile/RealSense_Diffuse</name>
-            </script>
-          </material>
-        </visual>
-        <sensor name='realsense_rgb_camera' type='depth'>
-          <pose>0 0 0 0 0 -1.5708</pose>
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>1</visualize>
-          <camera name='rgb_camera'>
-            <horizontal_fov>1.0472</horizontal_fov>
-            <image>
-              <width>640</width>
-              <height>480</height>
-              <format>B8G8R8</format>
-            </image>
-            <clip>
-              <near>0.01</near>
-              <far>10</far>
-            </clip>
-          </camera>
-          <plugin name='rgb_camera_controller' filename='libgazebo_ros_camera.so'>
-            <camera_name>camera</camera_name>
-            <frame_name>realsense_rgb_frame</frame_name>
-          </plugin>
-        </sensor>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>1</static>
-      <pose>0.071927 -1.09724 1.31228 1.79922 -0 1.57</pose>
-    </model>
     <model name='aws_robomaker_warehouse_GroundB_01_001_clone_clone'>
       <frame name='aws_robomaker_warehouse_GroundB_01::__model__' attached_to='aws_robomaker_warehouse_GroundB_01::link'>
         <pose relative_to='__model__'>0 0 0 0 -0 0</pose>
@@ -2107,6 +2016,70 @@
       </link>
       <static>1</static>
       <pose>0.198827 0.136037 -0.042378 0 -0 0</pose>
+    </model>
+    <model name='aruco_box'>
+      <link name='link_0'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <gravity>1</gravity>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <enable_wind>0</enable_wind>
+        <visual name='visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://aruco_box/meshes/box_0p2x0p2x0p2.dae</uri>
+              <scale>1 1 1</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <shader type='pixel'>
+              <normal_map>__default__</normal_map>
+            </shader>
+            <emissive>0 0 0 1</emissive>
+          </material>
+          <transparency>0</transparency>
+          <cast_shadows>1</cast_shadows>
+        </visual>
+        <collision name='collision'>
+          <laser_retro>0</laser_retro>
+          <max_contacts>10</max_contacts>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://aruco_box/meshes/box_0p2x0p2x0p2.dae</uri>
+              <scale>1 1 1</scale>
+            </mesh>
+          </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+      </link>
+      <static>0</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose>1.44601 -0.262166 0 0 -0 0</pose>
     </model>
   </world>
 </sdf>

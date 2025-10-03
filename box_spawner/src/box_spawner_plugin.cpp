@@ -7,7 +7,6 @@
 #include <std_srvs/srv/trigger.hpp>
 
 #include <sdf/sdf.hh>
-#include <random>
 #include <sstream>
 
 namespace gazebo
@@ -25,7 +24,7 @@ public:
       "spawn_box",
       std::bind(&BoxSpawnerPlugin::SpawnBoxCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-    RCLCPP_INFO(ros_node_->get_logger(), "BoxSpawnerPlugin loaded and 'spawn_box' service available.");
+    RCLCPP_INFO(ros_node_->get_logger(), "BoxSpawnerPlugin loaded. Service 'spawn_box' is ready.");
   }
 
 private:
@@ -33,69 +32,36 @@ private:
   gazebo_ros::Node::SharedPtr ros_node_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_;
 
-  std::default_random_engine gen_;
-
-  double x = 0.217246;
-  double y = 17.44981; 
-  double yaw = 0.0;
-
-  std::uniform_real_distribution<double> size_dist_{0.15, 0.16};
-  double mass_ = 20.0;
-
   int box_counter_ = 0;  // Sequential box counter
 
   void SpawnBoxCallback(
     const std_srvs::srv::Trigger::Request::SharedPtr,
     std_srvs::srv::Trigger::Response::SharedPtr res)
   {
-    std::string color = (rand() % 2 == 0) ? "Red" : "Blue";
-
-    double size = size_dist_(gen_);
-    double inertia_val = (1.0 / 6.0) * mass_ * size * size;
-    double z = 1.372966 + size / 2.0;
-
-    // Sequential model name: model_0, model_1, ...
     std::ostringstream name;
-    name << "model_" << box_counter_++;
-    
+    name << "aruco_box_" << box_counter_++;
+
+    // Fixed spawn pose
+    double x = 0.707365;
+    double y = 0.059061;
+    double z = 0.882940;
+    double roll = -1.570791;
+    double pitch = -0.000027;
+    double yaw = 0.009980;
+
+    // Use relative model path (must be in GAZEBO_MODEL_PATH)
+    std::string model_uri = "model://aruco_box";
+
     std::ostringstream sdf_str;
     sdf_str << "<sdf version='1.6'>"
-            << "<model name='" << name.str() << "'>"
-            << "<static>false</static>"
-            << "<self_collide>false</self_collide>"
-            << "<pose>" << x << " " << y << " " << z << " 0 0 " << yaw << "</pose>"
-            << "<link name='link'>"
-
-            << "  <inertial>"
-            << "    <mass>" << mass_ << "</mass>"
-            << "    <inertia>"
-            << "      <ixx>" << inertia_val << "</ixx><iyy>" << inertia_val << "</iyy><izz>" << inertia_val << "</izz>"
-            << "      <ixy>0.0</ixy><ixz>0.0</ixz><iyz>0.0</iyz>"
-            << "    </inertia>"
-            << "  </inertial>"
-
-            << "  <collision name='collision'>"
-            << "    <geometry><box><size>" << size << " " << size << " " << size << "</size></box></geometry>"
-            << "    <surface>"
-            << "      <contact>"
-            << "        <ode><soft_cfm>0.00001</soft_cfm><soft_erp>0.2</soft_erp></ode>"
-            << "      </contact>"
-            << "      <friction>"
-            << "        <ode><mu>1.0</mu><mu2>1.0</mu2></ode>"
-            << "      </friction>"
-            << "    </surface>"
-            << "  </collision>"
-
-            << "  <visual name='visual'>"
-            << "    <geometry><box><size>" << size << " " << size << " " << size << "</size></box></geometry>"
-            << "    <material>"
-            << "      <ambient>" << (color == "Red" ? "1 0 0 1" : "0 0 1 1") << "</ambient>"
-            << "      <diffuse>" << (color == "Red" ? "1 0 0 1" : "0 0 1 1") << "</diffuse>"
-            << "    </material>"
-            << "  </visual>"
-
-            << "</link>"
-            << "</model>"
+            << "  <model name='" << name.str() << "'>"
+            << "    <include>"
+            << "      <uri>" << model_uri << "</uri>"
+            << "      <pose>" << x << " " << y << " " << z << " "
+            << roll << " " << pitch << " " << yaw << "</pose>"
+            << "      <name>" << name.str() << "</name>"
+            << "    </include>"
+            << "  </model>"
             << "</sdf>";
 
     sdf::SDF model_sdf;
@@ -103,8 +69,9 @@ private:
     world_->InsertModelSDF(model_sdf);
 
     res->success = true;
-    res->message = "Spawned box: " + name.str();
-    RCLCPP_INFO(ros_node_->get_logger(), "Spawned %s (color=%s, size=%.3f)", name.str().c_str(), color.c_str(), size);
+    res->message = "Spawned model: " + name.str();
+    RCLCPP_INFO(ros_node_->get_logger(), "Spawned %s at pose (%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)",
+                name.str().c_str(), x, y, z, roll, pitch, yaw);
   }
 };
 

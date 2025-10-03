@@ -601,7 +601,7 @@
     </light>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>0.440444 -2.81148 4.56862 -0 0.9698 1.29797</pose>
+        <pose>-20.6968 2.58173 25.4062 0 0.865796 0.005974</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -1075,20 +1075,11 @@
       <pose>-6.91099 6.67572 0 0 0 -1.57228</pose>
     </model>
     <state world_name='default'>
-      <sim_time>9983 485000000</sim_time>
-      <real_time>156 595404423</real_time>
-      <wall_time>1759300129 578113443</wall_time>
-      <iterations>129342</iterations>
-      <model name='aruco_box'>
-        <pose>0.746534 -0.25708 0.882945 -1.57082 -6.9e-05 0.000307</pose>
-        <scale>1 1 1</scale>
-        <link name='link_0'>
-          <pose>0.746534 -0.25708 0.882945 -1.57082 -6.9e-05 0.000307</pose>
-          <velocity>0.001629 0.000463 -0.012472 -0.007876 -0.004403 0.000293</velocity>
-          <acceleration>0 0 -9.8 0 -0 0</acceleration>
-          <wrench>0 0 -9.8 0 -0 0</wrench>
-        </link>
-      </model>
+      <sim_time>9938 458000000</sim_time>
+      <real_time>105 799221261</real_time>
+      <wall_time>1758285731 892071640</wall_time>
+      <iterations>84315</iterations>
+
       <model name='aws_robomaker_warehouse_ClutteringA_01_016'>
         <pose>3.74423 11.1151 -0.017477 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1200,19 +1191,19 @@
         </link>
       </model>
       <model name='conveyor_belt3'>
-        <pose>0.668357 0.076446 0.081923 2.4e-05 -2.7e-05 0.02739</pose>
+        <pose>1.22113 0.09234 0.08196 -1e-06 -6.1e-05 0.022583</pose>
         <scale>1 1 1</scale>
         <link name='belt_moving'>
-          <pose>0.668976 0.053103 0.827922 2.4e-05 -2.7e-05 0.02739</pose>
-          <velocity>0.008143 0.000223 -0.015294 0.024497 0.011893 -0.000296</velocity>
-          <acceleration>8.26868 0.226542 -4.79663 -0.097152 -1.52069 2.83743</acceleration>
-          <wrench>115.762 3.17159 -67.1528 0 -0 0</wrench>
+          <pose>1.22113 0.090417 0.82796 -1e-06 -6.2e-05 0.022583</pose>
+          <velocity>-0.001566 -3.2e-05 -0.003626 -0.001552 -0.002252 6e-06</velocity>
+          <acceleration>-1.60559 -0.036266 -9.79514 0.127378 0.628367 -0.001384</acceleration>
+          <wrench>-22.4783 -0.507718 -137.132 0 -0 0</wrench>
         </link>
         <link name='belt_visual'>
-          <pose>0.668357 0.076446 0.081923 2.4e-05 -2.7e-05 0.02739</pose>
-          <velocity>-0.000278 -7.4e-05 -0.014713 0.02448 0.011966 -0.000313</velocity>
-          <acceleration>-0.152958 -0.070991 -4.21611 0.316273 -0.401899 -0.298703</acceleration>
-          <wrench>-76.4791 -35.4954 -2108.06 0 -0 0</wrench>
+          <pose>1.22113 0.09234 0.08196 -1e-06 -6.1e-05 0.022583</pose>
+          <velocity>8.5e-05 6e-06 -0.003631 -0.001566 -0.002351 1.1e-05</velocity>
+          <acceleration>0.044857 0.000916 -9.80004 -0.005925 0.166429 -0.000807</acceleration>
+          <wrench>22.4286 0.458022 -4900.02 0 -0 0</wrench>
         </link>
       </model>
       <model name='grey_wall_0'>
@@ -1853,7 +1844,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <scale>1 2 1</scale>
+              <scale>2 7 1</scale>
               <uri>model://conveyor_belt/meshes/conveyor_belt.dae</uri>
             </mesh>
           </geometry>
@@ -1861,7 +1852,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <scale>1 2 1</scale>
+              <scale>2 7 1</scale>
               <uri>model://conveyor_belt/meshes/conveyor_belt.dae</uri>
             </mesh>
           </geometry>
@@ -1901,7 +1892,7 @@
         <collision name='belt_collision'>
           <geometry>
             <box>
-              <size>0.425 1.1 0.01</size>
+              <size>0.85 7.7 0.01</size>
             </box>
           </geometry>
           <surface>

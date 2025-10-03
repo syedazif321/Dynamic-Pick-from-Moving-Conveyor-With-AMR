@@ -106,13 +106,12 @@ class DynamicDetector : public rclcpp::Node
 public:
     DynamicDetector()
         : Node("dynamic_detector_node"),
-        // Camera Intrinsics (KEEP)
         fx_(declare_parameter("fx", 554.3827)),
         fy_(declare_parameter("fy", 554.3827)),
         cx_(declare_parameter("cx", 320.5)),
         cy_(declare_parameter("cy", 240.5)),
         
-        // 🔑 NEW: ArUco Parameters
+
         marker_id_(declare_parameter("marker_id", 0)), // Your marker ID (e.g., 10)
         marker_size_m_(declare_parameter("marker_size_m", 0.0789)), // Physical size of the marker side (e.g., 5cm = 0.05)
 
@@ -125,11 +124,14 @@ public:
         pitch_offset_deg_(declare_parameter("pitch_offset_deg", 0.0)),
         yaw_offset_deg_(declare_parameter("yaw_offset_deg", 90.0)),
         estimator_(/* history size */ 5)
+        
     {
         // Publishers
         box_state_pub_ = create_publisher<msg_gazebo::msg::BoxState>("/box_state_dynamic", 10);
         info_pub_ = create_publisher<std_msgs::msg::String>("/detected_box_info", 10);
 
+
+        z_offset_m_ = declare_parameter("z_offset_m", 0.0); // Default to 0.0
         // Subscriptions
         rgb_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "/camera_rgb/rgb_camera/image_raw");
         depth_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "/camera_depth/depth_camera/depth/image_raw");
@@ -141,8 +143,7 @@ public:
         // Synchronizer
         sync_ = std::make_shared<message_filters::Synchronizer<SyncPolicy>>(SyncPolicy(10), *rgb_sub_, *depth_sub_);
         sync_->registerCallback(std::bind(&DynamicDetector::imageCb, this, std::placeholders::_1, std::placeholders::_2));
-        
-        // 🔑 NEW: Initialize ArUco Detector
+
         aruco_dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
         aruco_parameters_ = cv::aruco::DetectorParameters::create();
         // Optional: Tweak parameters, e.g., aruco_parameters_->adaptiveThreshWinSizeMin = 3;
@@ -213,6 +214,8 @@ private:
                     pose.pose.position.x = tvecs[i][0];
                     pose.pose.position.y = tvecs[i][1];
                     pose.pose.position.z = tvecs[i][2];
+
+                    pose.pose.position.z += z_offset_m_; 
                     pose.pose.orientation = tf2::toMsg(q_raw);
                     
                     best_pose_camera = pose;
@@ -232,17 +235,15 @@ private:
             geometry_msgs::msg::TransformStamped T_wc; // World in Camera (Not used here, just showing the old frame name was T_cb)
             
             try {
-                // We need the transform from the CAMERA frame to the WORLD frame (odom)
+                
                 T_cw = tf_buffer_->lookupTransform(world_frame_, camera_frame_, rgb_msg->header.stamp, 100ms);
             } catch (const tf2::TransformException& ex) {
                 RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000, "TF lookup failed: %s", ex.what());
-                // Still show the image if TF fails, but skip publishing state
                 cv::imshow("Detection", rgb);
                 cv::waitKey(1);
                 return;
             }
 
-            // 3b. Apply RPY Offset for Alignment (in Camera Frame, *before* transform)
             tf2::Quaternion q_orig;
             tf2::fromMsg(best_pose_camera->pose.orientation, q_orig);
 
@@ -312,6 +313,7 @@ private:
     //  NEW: ArUco Parameters
     int marker_id_;
     double marker_size_m_;
+    double z_offset_m_;
     cv::Ptr<cv::aruco::Dictionary> aruco_dictionary_;
     cv::Ptr<cv::aruco::DetectorParameters> aruco_parameters_;
     

@@ -8,7 +8,9 @@
 #include <thread> 
 #include "msg_gazebo/srv/attach_detach.hpp" 
 #include <chrono>
-#include <cmath> // Required for std::pow and std::abs
+#include <cmath> 
+#include "rclcpp/executors/single_threaded_executor.hpp" 
+#include "rclcpp/node.hpp" 
 
 using namespace std::chrono_literals;
 
@@ -22,14 +24,12 @@ DynamicPickController::DynamicPickController(const rclcpp::NodeOptions & options
       tf_listener_(*tf_buffer_),
       control_state_(IDLE)
 {
-    // 1. Parameters (Corrected: Declare parameter, then retrieve its value)
     this->declare_parameter("arm_group_name", "rm_group");
     this->declare_parameter("base_link_frame", "base_link");
 
     this->get_parameter("arm_group_name", arm_group_name_);
     this->get_parameter("base_link_frame", base_link_frame_);
 
-    // 2. Subscriptions
     box_state_sub_ = create_subscription<msg_gazebo::msg::BoxState>(
         "/box_state_dynamic", 10,
         std::bind(&DynamicPickController::box_state_callback, this, std::placeholders::_1));
@@ -45,14 +45,12 @@ DynamicPickController::DynamicPickController(const rclcpp::NodeOptions & options
         
     attach_client_ = create_client<msg_gazebo::srv::AttachDetach>("/AttachDetach");
     
-    // 4. Control Loop Timer (Slower rate for reliable blocking moves)
     control_timer_ = create_wall_timer(
         50ms, 
         std::bind(&DynamicPickController::control_loop, this));
 
     RCLCPP_INFO(logger_, "DynamicPickController ready. Tracking loop active at 20Hz.");
 }
-
 
 bool DynamicPickController::initialize_move_group()
 {
@@ -141,7 +139,6 @@ void DynamicPickController::control_loop()
         return;
     }
 
-    // --- 1. Calculate Relative Pose and Velocity ---
     geometry_msgs::msg::Vector3 v_base_world = odom.twist.twist.linear;
     tf2::Transform T_w_b;
     tf2::fromMsg(odom.pose.pose, T_w_b);
@@ -158,31 +155,26 @@ void DynamicPickController::control_loop()
     geometry_msgs::msg::PoseStamped target_pose_base;
     try {
         tf_buffer_->transform(
-            box_state.pose_world, target_pose_base, base_link_frame_, 50ms);
+            box_state.pose_world, target_pose_base, base_link_frame_, 200ms);
     } catch (const tf2::TransformException& ex) {
         RCLCPP_WARN_THROTTLE(logger_, *get_clock(), 1000, "TF transform failed: %s", ex.what());
         return;
     }
     
-    // --- 2. Check Grasp Condition (Robust logic for tracking the approach pose) ---
-    
+
     double V_rel_norm = v_target_base_tf.length();
-    
-    // Define the desired approach pose (which the arm is currently tracking)
+
     geometry_msgs::msg::Pose desired_approach_pose = target_pose_base.pose;
     desired_approach_pose.position.z += APPROACH_HEIGHT; 
-    
-    // Get the current end-effector pose
-    geometry_msgs::msg::Pose current_eef_pose = move_group_->getCurrentPose().pose;
 
-    // Calculate the distance between the current EEF pose and the desired approach pose
+    geometry_msgs::msg::Pose current_eef_pose = move_group_->getCurrentPose().pose;
+    
     tf2::Vector3 current_eef_pos(current_eef_pose.position.x, current_eef_pose.position.y, current_eef_pose.position.z);
     tf2::Vector3 desired_pos(desired_approach_pose.position.x, desired_approach_pose.position.y, desired_approach_pose.position.z);
     
     tf2::Vector3 error_vector = desired_pos - current_eef_pos;
     double alignment_error = error_vector.length();
 
-    // Use a single, generous tolerance check for overall alignment error
     const double ALIGNMENT_TOLERANCE_TOTAL = 0.20; // 5 cm total error
 
     if (V_rel_norm < GRASP_VELOCITY_TOLERANCE && 
@@ -190,13 +182,11 @@ void DynamicPickController::control_loop()
         
         control_state_ = GRASPING;
         RCLCPP_INFO(logger_, "Grasp condition met! V_rel: %.3f, Alignment Error: %.3f. Initiating GRASP.", V_rel_norm, alignment_error);
-        
-        // Pass the FINAL target pose (box surface) to the grasp sequence
+
         initiate_grasp_sequence(target_pose_base.pose);
         return;
     }
 
-    // --- 3. Cartesian Tracking Motion ---
     
     std::vector<geometry_msgs::msg::Pose> waypoints;
     waypoints.push_back(desired_approach_pose); // Keep tracking the approach pose
@@ -213,76 +203,99 @@ void DynamicPickController::control_loop()
     }
 }
 
+// initiate_grasp_sequence (FIXED)
 void DynamicPickController::initiate_grasp_sequence(const geometry_msgs::msg::Pose& final_pose)
 {
     if (control_state_ != GRASPING) return;
     
-    // NOTE: The arm should already be near the pre-grasp pose from the TRACKING state.
-    // We can skip the explicit plan-and-execute to the pre-grasp and go straight to descent
-    // or keep it simple by just defining the final descent.
-    
-    // --- 1. FINAL DESCENT MOTION (Cartesian path) ---
-    RCLCPP_INFO(logger_, "GRASP: Executing final Cartesian descent to box surface.");
+    // Move all blocking operations (MoveIt Execute, Service call) into a new thread
+    std::thread([this, final_pose]() {
+        RCLCPP_INFO(this->logger_, "GRASP: Starting descent and attachment thread...");
 
-    std::vector<geometry_msgs::msg::Pose> descent_waypoints;
-    descent_waypoints.push_back(final_pose); // Target: Box surface (0cm offset)
-    
-    moveit_msgs::msg::RobotTrajectory descent_trajectory;
-    const double eef_step = 0.002; 
-    
-    double fraction = move_group_->computeCartesianPath(descent_waypoints, eef_step, 0.0, descent_trajectory);
+        RCLCPP_INFO(this->logger_, "GRASP: Executing final Cartesian descent to box surface.");
 
-    if (fraction > 0.95) { 
-        move_group_->execute(descent_trajectory);
-        RCLCPP_INFO(logger_, "GRASP: Descent complete. Attempting attachment.");
-    } else {
-        RCLCPP_ERROR(logger_, "GRASP: Failed to compute final descent path (Fraction: %.2f). Aborting attachment.", fraction);
-        control_state_ = IDLE;
-        return;
-    }
-    
-    // --- 2. ATTACHMENT (Service Call) ---
-    if (attach_client_->wait_for_service(std::chrono::milliseconds(500))) {
-        auto request = std::make_shared<msg_gazebo::srv::AttachDetach::Request>();
-        request->model1 = "mobile_manipulator"; 
-        request->link1 = "tool0";            
-        request->model2 = "aruco_box";      
-        request->link2 = "link_0";           
-        request->attach = true;
+        // Preserve the current orientation for the descent motion
+        geometry_msgs::msg::Pose current_eef_pose = this->move_group_->getCurrentPose().pose;
+        geometry_msgs::msg::Pose vertical_final_pose = final_pose;
+        // Ensure the final pose uses the orientation that the tracking loop stabilized on
+        vertical_final_pose.orientation = current_eef_pose.orientation; 
 
-        auto future = attach_client_->async_send_request(request);
+        std::vector<geometry_msgs::msg::Pose> descent_waypoints;
+        descent_waypoints.push_back(vertical_final_pose); // Target: Box surface (0cm offset)
         
-        if (rclcpp::spin_until_future_complete(shared_from_this(), future, std::chrono::seconds(2)) == rclcpp::FutureReturnCode::SUCCESS) {
-            if (future.get()->success) {
-                RCLCPP_INFO(logger_, "GRASP: Attachment successful!");
+        moveit_msgs::msg::RobotTrajectory descent_trajectory;
+        const double eef_step = 0.005; 
+        const double jump_threshold = 2.0; 
+        
+        double fraction = this->move_group_->computeCartesianPath(descent_waypoints, eef_step, jump_threshold, descent_trajectory);
+
+        if (fraction > 0.95) { 
+            this->move_group_->execute(descent_trajectory);
+            RCLCPP_INFO(this->logger_, "GRASP: Descent complete. Attempting attachment.");
+        } else {
+            RCLCPP_ERROR(this->logger_, "GRASP: Failed to compute final descent path (Fraction: %.2f). Aborting attachment.", fraction);
+            this->control_state_ = IDLE;
+            return;
+        }
+        
+        bool attachment_success = false;
+        
+        if (this->attach_client_->wait_for_service(std::chrono::milliseconds(500))) {
+            auto request = std::make_shared<msg_gazebo::srv::AttachDetach::Request>();
+            request->model1 = "mobile_manipulator"; 
+            request->link1 = "Link7";            
+            request->model2 = "aruco_box";      
+            request->link2 = "link_0";           
+            request->attach = true;
+
+            auto future = this->attach_client_->async_send_request(request);
+            
+            auto temp_executor_node = std::make_shared<rclcpp::Node>("temp_attachment_executor");
+
+            rclcpp::executors::SingleThreadedExecutor executor;
+            executor.add_node(temp_executor_node); 
+
+            if (executor.spin_until_future_complete(future, std::chrono::seconds(2)) == rclcpp::FutureReturnCode::SUCCESS) {
+                
+                auto result = future.get(); 
+                
+                if (result->success) {
+                    RCLCPP_INFO(this->logger_, "GRASP: Attachment successful!");
+                    attachment_success = true;
+                } else {
+                    RCLCPP_ERROR(this->logger_, "GRASP: Attachment service failed: %s", result->message.c_str());
+                }
             } else {
-                RCLCPP_ERROR(logger_, "GRASP: Attachment service failed: %s", future.get()->message.c_str());
+                RCLCPP_ERROR(this->logger_, "GRASP: Attachment service call interrupted or timed out.");
+            }
+            
+            
+        } else {
+            RCLCPP_ERROR(this->logger_, "GRASP: AttachDetach service not available during grasping phase.");
+        }
+
+        if (attachment_success) {
+            this->control_state_ = RETRACTING;
+            RCLCPP_INFO(this->logger_, "Attachment successful. Retracting arm to home position.");
+            
+            this->move_group_->clearPoseTargets();
+            this->move_group_->setNamedTarget("home"); 
+            
+            moveit::planning_interface::MoveGroupInterface::Plan retract_plan;
+            
+            if (this->move_group_->plan(retract_plan) == moveit::core::MoveItErrorCode::SUCCESS) {
+                this->move_group_->execute(retract_plan);
+            } else {
+                 RCLCPP_ERROR(this->logger_, "Failed to plan retract motion!");
             }
         } else {
-            RCLCPP_ERROR(logger_, "GRASP: Attachment service call interrupted or timed out.");
+            RCLCPP_ERROR(this->logger_, "Skipping retraction due to failed attachment. Resetting state.");
         }
-    } else {
-        RCLCPP_ERROR(logger_, "GRASP: AttachDetach service not available during grasping phase.");
-    }
+        
+        this->control_state_ = IDLE;
+        RCLCPP_INFO(this->logger_, "Pick cycle complete. System IDLE.");
 
-
-    // --- 3. RETRACT/HOME ---
-    control_state_ = RETRACTING;
-    RCLCPP_INFO(logger_, "Attachment complete. Retracting arm to home position.");
-    
-    move_group_->clearPoseTargets();
-    move_group_->setNamedTarget("home"); 
-    
-    moveit::planning_interface::MoveGroupInterface::Plan retract_plan;
-    // Execute planning and execution in one go, as it's a simple move to a named state
-    if (move_group_->plan(retract_plan) == moveit::core::MoveItErrorCode::SUCCESS) {
-        move_group_->execute(retract_plan);
-    } else {
-         RCLCPP_ERROR(logger_, "Failed to plan retract motion!");
-    }
-    
-    control_state_ = IDLE;
-    RCLCPP_INFO(logger_, "Pick cycle complete. System IDLE.");
+    }).detach(); 
 }
 
 } // namespace pipeline_manipulator

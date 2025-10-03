@@ -29,10 +29,10 @@ def generate_launch_description():
         description="SDF world file"
     )
     entity_arg = DeclareLaunchArgument("entity", default_value="alphabot")
-    x_arg = DeclareLaunchArgument("x", default_value="0.0")
-    y_arg = DeclareLaunchArgument("y", default_value="0.0")
+    x_arg = DeclareLaunchArgument("x", default_value="1.025312")
+    y_arg = DeclareLaunchArgument("y", default_value="5.917791")
     z_arg = DeclareLaunchArgument("z", default_value="0.1")
-    yaw_arg = DeclareLaunchArgument("yaw", default_value="0.0")
+    yaw_arg = DeclareLaunchArgument("yaw", default_value="0.009738")
     use_sim_time_arg = DeclareLaunchArgument("use_sim_time", default_value="true")
     ns_arg = DeclareLaunchArgument("namespace", default_value="", description="ROS namespace")
 

@@ -65,7 +65,7 @@
     <joint name="base_joint" type="fixed">
         <parent link="base_footprint"/>
         <child link="link_base"/>
-        <origin xyz="0 0 ${chassis_height/2 + traction_wheel_radius}" rpy="0 0 1.57" />
+        <origin xyz="1.035312 3.917791 ${chassis_height/2 + traction_wheel_radius}" rpy="0 0 1.57" />
     </joint>
 
 

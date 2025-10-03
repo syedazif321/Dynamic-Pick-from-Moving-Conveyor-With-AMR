@@ -601,7 +601,7 @@
     </light>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-20.6968 2.58173 25.4062 0 0.865796 0.005974</pose>
+        <pose>-0.155308 7.71714 3.43272 -0 0.601796 -0.870016</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -1075,11 +1075,20 @@
       <pose>-6.91099 6.67572 0 0 0 -1.57228</pose>
     </model>
     <state world_name='default'>
-      <sim_time>9938 458000000</sim_time>
-      <real_time>105 799221261</real_time>
-      <wall_time>1758285731 892071640</wall_time>
-      <iterations>84315</iterations>
-
+      <sim_time>10667 378000000</sim_time>
+      <real_time>31 212999172</real_time>
+      <wall_time>1759476038 566207646</wall_time>
+      <iterations>25346</iterations>
+      <model name='aruco_box'>
+        <pose>1.66216 4.46104 0.881517 -1.57145 -0.005368 -0.002343</pose>
+        <scale>1 1 1</scale>
+        <link name='link_0'>
+          <pose>1.66216 4.46104 0.881517 -1.57145 -0.005368 -0.002343</pose>
+          <velocity>-0.012081 0.000355 0.007171 -0.003 -0.182829 0.00352</velocity>
+          <acceleration>-0.363124 -2.08863 16.0426 -2.0228 1.31767 0.707971</acceleration>
+          <wrench>-1.81562 -10.4431 80.213 0 -0 0</wrench>
+        </link>
+      </model>
       <model name='aws_robomaker_warehouse_ClutteringA_01_016'>
         <pose>3.74423 11.1151 -0.017477 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1191,19 +1200,19 @@
         </link>
       </model>
       <model name='conveyor_belt3'>
-        <pose>1.22113 0.09234 0.08196 -1e-06 -6.1e-05 0.022583</pose>
+        <pose>1.85166 0.959058 0.081957 9e-06 -0.000106 -0.014386</pose>
         <scale>1 1 1</scale>
         <link name='belt_moving'>
-          <pose>1.22113 0.090417 0.82796 -1e-06 -6.2e-05 0.022583</pose>
-          <velocity>-0.001566 -3.2e-05 -0.003626 -0.001552 -0.002252 6e-06</velocity>
-          <acceleration>-1.60559 -0.036266 -9.79514 0.127378 0.628367 -0.001384</acceleration>
-          <wrench>-22.4783 -0.507718 -137.132 0 -0 0</wrench>
+          <pose>1.85143 0.956089 0.827957 -0.000571 0.000253 -0.014403</pose>
+          <velocity>0.008478 0.000643 -0.021976 -0.03837 0.038312 0.003351</velocity>
+          <acceleration>8.5611 0.628999 -9.12368 0.265164 -0.40774 1.38532</acceleration>
+          <wrench>119.855 8.80599 -127.732 0 -0 0</wrench>
         </link>
         <link name='belt_visual'>
-          <pose>1.22113 0.09234 0.08196 -1e-06 -6.1e-05 0.022583</pose>
-          <velocity>8.5e-05 6e-06 -0.003631 -0.001566 -0.002351 1.1e-05</velocity>
-          <acceleration>0.044857 0.000916 -9.80004 -0.005925 0.166429 -0.000807</acceleration>
-          <wrench>22.4286 0.458022 -4900.02 0 -0 0</wrench>
+          <pose>1.85166 0.959058 0.081957 9e-06 -0.000106 -0.014386</pose>
+          <velocity>-0.00031 -3.1e-05 -0.021873 0.009039 0.009265 -9.9e-05</velocity>
+          <acceleration>-0.226412 -0.045064 -9.02082 -0.464315 0.370245 -0.128343</acceleration>
+          <wrench>-113.206 -22.5318 -4510.41 0 -0 0</wrench>
         </link>
       </model>
       <model name='grey_wall_0'>
@@ -2011,7 +2020,7 @@
     <model name='aruco_box'>
       <link name='link_0'>
         <inertial>
-          <mass>1</mass>
+          <mass>5</mass>
           <inertia>
             <ixx>0.166667</ixx>
             <ixy>0</ixy>
@@ -2070,7 +2079,7 @@
       </link>
       <static>0</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>1.44601 -0.262166 0 0 -0 0</pose>
+      <pose>1.82139 4.45236 0 0 -0 0</pose>
     </model>
   </world>
 </sdf>

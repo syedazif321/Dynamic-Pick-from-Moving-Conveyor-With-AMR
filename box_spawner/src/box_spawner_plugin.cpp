@@ -42,12 +42,12 @@ private:
     name << "aruco_box_" << box_counter_++;
 
     // Fixed spawn pose
-    double x = 0.707365;
-    double y = 0.059061;
-    double z = 0.882940;
-    double roll = -1.570791;
-    double pitch = -0.000027;
-    double yaw = 0.009980;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.05;
+    double roll = 0.0;
+    double pitch = -0.0000;
+    double yaw = 0.0;
 
     // Use relative model path (must be in GAZEBO_MODEL_PATH)
     std::string model_uri = "model://aruco_box";

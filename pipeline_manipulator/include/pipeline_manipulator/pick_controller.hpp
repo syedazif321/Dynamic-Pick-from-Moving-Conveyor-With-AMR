@@ -7,7 +7,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <nav_msgs/msg/odometry.hpp>
 #include "msg_gazebo/msg/box_state.hpp" 
-#include "msg_gazebo/srv/attach_detach.hpp" // <-- NEW: Required for the service client
+#include "msg_gazebo/srv/attach_detach.hpp"
 #include <mutex> 
 
 namespace pipeline_manipulator
@@ -50,7 +50,6 @@ private:
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
     tf2_ros::TransformListener tf_listener_;
     
-    // NEW: Service Client for attachment (FIX: Declared here)
     rclcpp::Client<msg_gazebo::srv::AttachDetach>::SharedPtr attach_client_; 
 
     // Shared State Data
@@ -59,11 +58,14 @@ private:
     State control_state_;
     std::mutex data_mutex_; 
     
-    // Configuration constants (Assuming these were defined in your .hpp)
-    const std::string arm_group_name_ = "rm_group";
-    const std::string base_link_frame_ = "base_link";
+    // Configuration members (NOT CONST, will be set in constructor)
+    std::string arm_group_name_;
+    std::string base_link_frame_;
+    
+    // Constants (Should remain const)
     const double GRASP_VELOCITY_TOLERANCE = 0.05; // 5 cm/s
-    const double GRASP_POSITION_TOLERANCE = 0.03; // 3 cm
+    const double GRASP_POSITION_TOLERANCE = 0.40; // This is not used in the final logic, but remains defined.
+    const double APPROACH_HEIGHT = 0.10; // 10 cm (The height used for tracking and pre-grasp)
 };
 
 } // namespace pipeline_manipulator

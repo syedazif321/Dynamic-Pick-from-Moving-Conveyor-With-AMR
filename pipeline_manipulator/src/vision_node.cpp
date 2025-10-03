@@ -309,7 +309,7 @@ private:
     // --- Member Variables ---
     double fx_, fy_, cx_, cy_;
     
-    // 🔑 NEW: ArUco Parameters
+    //  NEW: ArUco Parameters
     int marker_id_;
     double marker_size_m_;
     cv::Ptr<cv::aruco::Dictionary> aruco_dictionary_;

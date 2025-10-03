@@ -81,6 +81,36 @@
     <origin xyz="-0.01 0 -0.36" rpy="0 0 0"/>
   </joint>
 
+  <!-- <link name="box_link">
+  <visual>
+    <geometry>
+      <box size="0.087220 0.116244 0.776193"/>
+    </geometry>
+    <material name="Grey">
+      <color rgba="0.7 0.7 0.7 1"/>
+    </material>
+  </visual>
+  <collision>
+    <geometry>
+      <box size="0.087220 0.116244 0.776193"/>
+    </geometry>
+  </collision>
+  <inertial>
+    <mass value="10.0"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+</link>
+
+ <joint name="box_linkto_linkbase" type="fixed">
+    <parent link="link_base"/>        
+    <child  link="box_link"/>     
+    <origin xyz="0 0.1 0.5" rpy="0 1.57 0"/>
+  </joint>
+
+ -->
+
+
+
     <gazebo reference="cylinder_link">
       <material>Gazebo/Grey</material>
   </gazebo>
@@ -89,7 +119,7 @@
   <joint name="sliderto_camera" type="fixed">
     <parent link="link_base"/>        
     <child  link="camera_link_base"/>     
-    <origin xyz="-0.3 0.1 1.0" rpy="0 0 -1.57"/>
+    <origin xyz="-0.3 0.18 1.0" rpy="0 0 -1.57"/>
   </joint>
 
 </robot>

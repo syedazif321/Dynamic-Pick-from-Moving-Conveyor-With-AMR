@@ -94,7 +94,7 @@ private:
       auto pose2 = link2->WorldPose().Pos();
       double distance = pose1.Distance(pose2);
 
-      double proximity_threshold = 0.209213;  //  in cm threshold
+      double proximity_threshold = 0.409213;  //  in cm threshold
       if (distance > proximity_threshold)
       {
         std::ostringstream ss;

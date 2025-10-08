@@ -9,6 +9,8 @@
 #include "msg_gazebo/msg/box_state.hpp" 
 #include "msg_gazebo/srv/attach_detach.hpp"
 #include <mutex> 
+#include <thread>
+#include <atomic> // Must be included for std::atomic
 
 namespace pipeline_manipulator
 {
@@ -20,19 +22,26 @@ public:
 
 private:
     // State machine definition
-    enum State { IDLE, TRACKING, GRASPING, RETRACTING };
+    enum State { 
+        IDLE, 
+        INITIAL_MOVE, 
+        READY_TO_PICK,
+        TRACKING,     
+        GRASPING,      
+        RETRACTING,    
+        PICK_IN_PROGRESS
+    };
 
     // --- Callbacks and Control Loop ---
     void box_state_callback(const msg_gazebo::msg::BoxState::SharedPtr msg);
     void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
+    void check_setup_and_start_initial_move(); 
     void control_loop(); 
-    bool start_pick_service(
-        const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-        std::shared_ptr<std_srvs::srv::Trigger::Response> response);
-        
+    
     // --- Helper Functions ---
     bool initialize_move_group(); 
-    void initiate_grasp_sequence(const geometry_msgs::msg::Pose& final_pose);
+    bool execute_initial_move(); 
+    void execute_pick_sequence(const geometry_msgs::msg::Pose& target_pose);
 
     // --- Member Variables ---
     rclcpp::Logger logger_;
@@ -42,7 +51,6 @@ private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     
     // Services and Timer
-    rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr start_service_;
     rclcpp::TimerBase::SharedPtr control_timer_;
 
     // MoveIt and TF
@@ -55,17 +63,14 @@ private:
     // Shared State Data
     msg_gazebo::msg::BoxState latest_box_state_;
     nav_msgs::msg::Odometry latest_odom_;
-    State control_state_;
+    std::atomic<State> control_state_; // std::atomic for thread-safe state
     std::mutex data_mutex_; 
     
-    // Configuration members (NOT CONST, will be set in constructor)
+    bool setup_complete_ = false; 
+    
+    // Configuration members
     std::string arm_group_name_;
     std::string base_link_frame_;
-    
-    // Constants (Should remain const)
-    const double GRASP_VELOCITY_TOLERANCE = 0.05; // 5 cm/s
-    const double GRASP_POSITION_TOLERANCE = 0.40; // This is not used in the final logic, but remains defined.
-    const double APPROACH_HEIGHT = 0.10; // 10 cm (The height used for tracking and pre-grasp)
 };
 
 } // namespace pipeline_manipulator

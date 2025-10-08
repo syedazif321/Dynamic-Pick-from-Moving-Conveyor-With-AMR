@@ -30,7 +30,7 @@
 #include <sstream>
 #include <deque>
 #include <map> 
-#include <utility> // NEW: For std::pair
+#include <utility> // For std::pair
 
 using namespace std::chrono_literals;
 
@@ -132,26 +132,22 @@ public:
         box_state_pub_ = create_publisher<msg_gazebo::msg::BoxState>("/box_state_dynamic", 10);
         info_pub_ = create_publisher<std_msgs::msg::String>("/detected_box_info", 10);
         
-        z_offset_m_ = declare_parameter("z_offset_m", -0.03); 
+        z_offset_m_ = declare_parameter("z_offset_m", -0.02); 
         
-        // 🔑 MODIFIED: Initialize the velocity-to-offset map for X and Y axes
-        // Key: AMR Linear X Velocity (m/s)
-        // Value: {X Offset (m), Y Offset (m)}
+        // Velocity-to-offset map: Key: AMR Linear X Velocity (m/s), Value: {X Offset (m), Y Offset (m)}
         vel_xy_offset_map_ = {
-            // Note: These X offsets are *examples*. Tune them based on test results.
-            {-0.10, {-0.025, -0.38}},  // AMR speed -0.10 m/s -> X_off=-5cm, Y_off=-42cm
-            {-0.15, {-0.025, -0.32}},
-            {-0.20, {0.0, 0.02}},     // AMR speed -0.20 m/s -> X_off=0cm, Y_off=2cm
-            {-0.25, {0.02, -0.01}}, 
-            {-0.30, {0.04, -0.03}},
-            {-0.35, {0.06, -0.05}}
+            {-0.10, {-0.0, 0.38}},
+            {-0.15, {-0.0, -0.22}},
+            {-0.20, {0.0, -0.195}},
+            {-0.25, {0.0, -0.1}}, 
+            {-0.30, {0.04, -0.24}},
         };
-        // Current AMR Linear X velocity parameter for lookup (to be updated by /cmd_vel)
         current_amr_vel_x_ = declare_parameter("current_amr_vel_x", 0.0);
         
         // Subscriptions
         rgb_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "/camera_rgb/rgb_camera/image_raw");
         depth_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(this, "/camera_depth/depth_camera/depth/image_raw");
+        
         // Subscriber for AMR velocity
         cmd_vel_sub_ = create_subscription<geometry_msgs::msg::Twist>(
             "/cmd_vel", 10, std::bind(&DynamicDetector::cmdVelCb, this, std::placeholders::_1));
@@ -181,10 +177,11 @@ private:
         RCLCPP_DEBUG(get_logger(), "AMR Speed updated: %.2f m/s", current_amr_vel_x_);
     }
 
-    // 🔑 NEW: Function to get the required X and Y offsets based on AMR velocity
+    // Function to get the required X and Y offsets based on AMR velocity
     std::pair<double, double> getPredictionOffsets(double amr_vel_x)
     {
         for (const auto& pair : vel_xy_offset_map_) {
+            // Check for close match, useful if cmd_vel isn't exactly the map key
             if (std::abs(pair.first - amr_vel_x) < 1e-4) {
                 // Return {X_offset, Y_offset}
                 return pair.second;
@@ -196,9 +193,6 @@ private:
             "AMR speed (%.2f) not found in offset map. Using {0.0, 0.0} offsets.", amr_vel_x);
         return {0.0, 0.0};
     }
-
-    // 🔑 REMOVED: getPredictionOffsetX and getPredictionOffsetY are no longer needed.
-
 
     void imageCb(const sensor_msgs::msg::Image::ConstSharedPtr& rgb_msg,
                  const sensor_msgs::msg::Image::ConstSharedPtr& depth_msg)
@@ -304,20 +298,18 @@ private:
             geometry_msgs::msg::PoseStamped pose_world_raw;
             tf2::doTransform(*best_pose_camera, pose_world_raw, T_cw);
             
-            // 4. Estimate Velocity (use the raw pose before offset for accurate velocity)
-            estimator_.update_pose(pose_world_raw); // Use raw pose to estimate true box velocity
+            // 4. Estimate Velocity 
+            estimator_.update_pose(pose_world_raw); 
             geometry_msgs::msg::TwistStamped vel_world = 
                 estimator_.get_velocity(world_frame_, pose_world_raw.header.stamp);
 
             // 5. Apply Dynamic Prediction Offsets 
-            geometry_msgs::msg::PoseStamped pose_world = pose_world_raw; // Start with the raw world pose
+            geometry_msgs::msg::PoseStamped pose_world = pose_world_raw; 
 
-            // 🔑 MODIFIED: Get X and Y offsets from the new map-based function
             std::pair<double, double> offsets = getPredictionOffsets(current_amr_vel_x_);
-            double x_offset = offsets.first; // X-offset (from map)
-            double y_offset = offsets.second; // Y-offset (from map)
+            double x_offset = offsets.first;
+            double y_offset = offsets.second;
             
-            // Apply the offsets in the world frame. 
             pose_world.pose.position.x += x_offset; 
             pose_world.pose.position.y += y_offset; 
 
@@ -327,26 +319,29 @@ private:
             // 6. Publish Custom Message
             auto box_state_msg = msg_gazebo::msg::BoxState();
             box_state_msg.header = pose_world.header;
-            box_state_msg.pose_world = pose_world;      // Target pose (with offset)
-            box_state_msg.velocity_world = vel_world;   // Actual box velocity (without offset)
+            box_state_msg.pose_world = pose_world;      
+            box_state_msg.velocity_world = vel_world;   
             box_state_pub_->publish(box_state_msg);
             
-            // 7. Broadcast TF for Visualization (World Frame)
+            // 7. Broadcast TF for Visualization 
             geometry_msgs::msg::TransformStamped tf_msg;
             tf_msg.header = pose_world.header;
-            tf_msg.child_frame_id = "detected_box"; // This TF now represents the *predicted/adjusted* target
+            tf_msg.child_frame_id = "detected_box"; 
             tf_msg.transform.translation.x = pose_world.pose.position.x;
             tf_msg.transform.translation.y = pose_world.pose.position.y;
             tf_msg.transform.translation.z = pose_world.pose.position.z;
             tf_msg.transform.rotation = pose_world.pose.orientation;
             tf_broadcaster_->sendTransform(tf_msg);
 
-            // 8. Publish Info (Debug)
+            // 8. Publish Info (Debug) - Using ANSI Escape Codes for RED
+            const std::string RED = "\033[31m";
+            const std::string RESET = "\033[0m";
+
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(3)
                 << "Box Detected (WORLD) | AMR Vel X: " << current_amr_vel_x_ << " m/s\n"
-                << "  *Applied X Offset: " << x_offset << " [m]\n"
-                << "  *Applied Y Offset: " << y_offset << " [m]\n" 
+                << "  " << RED << "*Applied X Offset: " << x_offset << " [m]" << RESET << "\n" 
+                << "  " << RED << "*Applied Y Offset: " << y_offset << " [m]" << RESET << "\n" 
                 << "  Raw Pos (X, Y, Z): " << pose_world_raw.pose.position.x << ", " 
                 << pose_world_raw.pose.position.y << ", " << pose_world_raw.pose.position.z << " [m]\n"
                 << "  Target Pos (X, Y, Z): " << pose_world.pose.position.x << ", " 
@@ -357,7 +352,9 @@ private:
             auto info_msg = std_msgs::msg::String();
             info_msg.data = oss.str();
             info_pub_->publish(info_msg);
-            RCLCPP_DEBUG_STREAM(get_logger(), "\n" << oss.str());
+            
+            // Use RCLCPP_INFO_STREAM to ensure the output is visible by default
+            RCLCPP_INFO_STREAM(get_logger(), "\n" << oss.str());
         }
 
         // 9. Visualization
@@ -380,7 +377,7 @@ private:
 
     std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> rgb_sub_, depth_sub_;
     std::shared_ptr<message_filters::Synchronizer<SyncPolicy>> sync_;
-    // cmd_vel subscriber
+    
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub_; 
     
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -392,7 +389,6 @@ private:
     
     PoseEstimator estimator_;
     
-    // 🔑 MODIFIED: Map now stores {X_offset, Y_offset} pair
     std::map<double, std::pair<double, double>> vel_xy_offset_map_;
     double current_amr_vel_x_;
 };

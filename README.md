@@ -56,4 +56,8 @@ effort:
 ros2 topic pub --once /rm_group_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory "{header: {stamp: now}, joint_names: [joint1, joint2, joint3, joint4, joint5, joint6, joint7], points: [{positions: [1.0, -1.0, -3.1, -0.66, 3.07, -2.12, -3.66], time_from_start: {sec: 5, nanosec: 0}}]}"
 
 
-20  - 0.1
+            {-0.10, {-0.025, 0.38}}, 20
+            {-0.15, {-0.025, -0.22}}, 20
+            {-0.20, {0.0, -0.195}}, 25
+                    {-0.25, {0.0, -0.1}},  25
+                    {-0.30, {0.04, -0.195}}, 35

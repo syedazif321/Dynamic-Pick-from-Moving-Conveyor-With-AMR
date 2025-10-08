@@ -132,15 +132,15 @@ public:
         box_state_pub_ = create_publisher<msg_gazebo::msg::BoxState>("/box_state_dynamic", 10);
         info_pub_ = create_publisher<std_msgs::msg::String>("/detected_box_info", 10);
         
-        z_offset_m_ = declare_parameter("z_offset_m", -0.02); 
+        z_offset_m_ = declare_parameter("z_offset_m", -0.03); 
         
         // Velocity-to-offset map: Key: AMR Linear X Velocity (m/s), Value: {X Offset (m), Y Offset (m)}
         vel_xy_offset_map_ = {
-            {-0.10, {-0.0, 0.38}},
+            {-0.10, {-0.0, -0.38}},
             {-0.15, {-0.0, -0.22}},
-            {-0.20, {0.0, -0.195}},
-            {-0.25, {0.0, -0.1}}, 
-            {-0.30, {0.04, -0.24}},
+            {-0.20, {0.0, -0.38}},
+            {-0.25, {0.0, -0.25}}, 
+            {-0.30, {0.0, -0.26}},
         };
         current_amr_vel_x_ = declare_parameter("current_amr_vel_x", 0.0);
         

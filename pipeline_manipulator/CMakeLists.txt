@@ -31,6 +31,7 @@ find_package(msg_gazebo REQUIRED)
 find_package(nav2_msgs REQUIRED) 
 find_package(control_msgs REQUIRED)
 find_package(SQLite3 REQUIRED) 
+find_package(conveyorbelt_msgs REQUIRED) # Dependency for ConveyorBeltControl service
 
 # ------------------------------------------------------------------------------
 # Vision Node (vision_node)
@@ -84,35 +85,26 @@ target_link_libraries(dynamic_pick_controller
 )
 
 # ------------------------------------------------------------------------------
-# Pipeline FSM Node (Core) - COMMENTED OUT
+# Pipeline Setup Node (pipeline_fsm) <-- MODIFIED BLOCK
+# This node executes the user-triggered AMR and Conveyor start sequence.
 # ------------------------------------------------------------------------------
-# add_executable(pipeline_fsm
-#   src/main.cpp
-#   src/pipeline_fsm.cpp
-# )
+add_executable(pipeline_fsm src/pipeline_fsm.cpp)
 
-# ament_target_dependencies(pipeline_fsm
-#   rclcpp
-#   rclcpp_action
-#   std_msgs
-#   geometry_msgs
-#   nav2_msgs
-#   control_msgs
-#   std_srvs
-#   msg_gazebo
-#   moveit_ros_planning_interface
-# )
+ament_target_dependencies(pipeline_fsm
+  rclcpp
+  geometry_msgs
+  std_srvs
+  conveyorbelt_msgs # Dependency for the ConveyorBeltControl service
+)
 
-# target_include_directories(pipeline_fsm PUBLIC
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#   $<INSTALL_INTERFACE:include>
-# )
+target_include_directories(pipeline_fsm PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
-# target_link_libraries(pipeline_fsm
-#   ${SQLite3_LIBRARIES}  
-#   ${moveit_ros_planning_interface_LIBRARIES} 
-#   ${msg_gazebo_LIBRARIES}
-# )
+# You can optionally link other libraries if needed for logging/threading/etc.
+# target_link_libraries(pipeline_fsm) 
+
 
 # ------------------------------------------------------------------------------
 # Install
@@ -120,7 +112,7 @@ target_link_libraries(dynamic_pick_controller
 install(TARGETS
   vision_node
   dynamic_pick_controller
-  # pipeline_fsm # Removed FSM from installation list
+  pipeline_fsm  # <-- Now installing the new pipeline node
   DESTINATION lib/${PROJECT_NAME}
 )
 

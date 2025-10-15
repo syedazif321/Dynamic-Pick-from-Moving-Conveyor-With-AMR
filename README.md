@@ -1,7 +1,7 @@
 # 🤖 Dynamic Pick from Moving Conveyor While AMR
 
 <div align="center">
-  <img src="gif/video1.gif" width="600"/>
+  <img src="gif/video2.gif" width="600"/>
 </div>
 
 ## 🏗️ Overview
@@ -122,9 +122,9 @@ ros2 service call /conveyor3/CONVEYORPOWER conveyorbelt_msgs/srv/ConveyorBeltCon
 | ------------------- | --------------------------------------- |
 | Full Pick Operation | <img src="gif/video1.gif" width="500"/> |
 | Conveyor in Motion  | <img src="gif/video2.gif" width="500"/> |
-| Screenshot 1        | <img src="gif/1.png" width="500"/>      |
-| Screenshot 2        | <img src="gif/2.png" width="500"/>      |
-| Screenshot 3        | <img src="gif/3.png" width="500"/>      |
+| image 1        | <img src="gif/1.png" width="500"/>      |
+| image 2        | <img src="gif/2.png" width="500"/>      |
+| image 3        | <img src="gif/3.png" width="500"/>      |
 
 ---
 

@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 3.0.1</authoring_tool>
     </contributor>
-    <created>2025-09-19T12:17:45</created>
-    <modified>2025-09-19T12:17:45</modified>
+    <created>2025-10-01T11:08:26</created>
+    <modified>2025-10-01T11:08:26</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -30,14 +30,14 @@
     </effect>
     <effect id="ImageMat-effect">
       <profile_COMMON>
-        <newparam sid="texture_0p25x0p25x0p2_png-surface">
+        <newparam sid="texture_0p2x0p2x0p2_png-surface">
           <surface type="2D">
-            <init_from>texture_0p25x0p25x0p2_png</init_from>
+            <init_from>texture_0p2x0p2x0p2_png</init_from>
           </surface>
         </newparam>
-        <newparam sid="texture_0p25x0p25x0p2_png-sampler">
+        <newparam sid="texture_0p2x0p2x0p2_png-sampler">
           <sampler2D>
-            <source>texture_0p25x0p25x0p2_png-surface</source>
+            <source>texture_0p2x0p2x0p2_png-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
@@ -46,7 +46,7 @@
               <color sid="emission">0 0 0 1</color>
             </emission>
             <diffuse>
-              <texture texture="texture_0p25x0p25x0p2_png-sampler" texcoord="UVMap"/>
+              <texture texture="texture_0p2x0p2x0p2_png-sampler" texcoord="UVMap"/>
             </diffuse>
             <index_of_refraction>
               <float sid="ior">1.45</float>
@@ -57,8 +57,8 @@
     </effect>
   </library_effects>
   <library_images>
-    <image id="texture_0p25x0p25x0p2_png" name="texture_0p25x0p25x0p2_png">
-      <init_from>texture_0p25x0p25x0p2.png</init_from>
+    <image id="texture_0p2x0p2x0p2_png" name="texture_0p2x0p2x0p2_png">
+      <init_from>texture_0p2x0p2x0p2.png</init_from>
     </image>
   </library_images>
   <library_materials>
@@ -73,7 +73,7 @@
     <geometry id="Cube-mesh" name="Cube">
       <mesh>
         <source id="Cube-mesh-positions">
-          <float_array id="Cube-mesh-positions-array" count="24">-0.0625 -0.0625 -0.04999995 -0.0625 -0.0625 0.04999995 -0.0625 0.0625 -0.04999995 -0.0625 0.0625 0.04999995 0.0625 -0.0625 -0.04999995 0.0625 -0.0625 0.04999995 0.0625 0.0625 -0.04999995 0.0625 0.0625 0.04999995</float_array>
+          <float_array id="Cube-mesh-positions-array" count="24">-0.04999995 -0.04999995 -0.04999995 -0.04999995 -0.04999995 0.04999995 -0.04999995 0.04999995 -0.04999995 -0.04999995 0.04999995 0.04999995 0.04999995 -0.04999995 -0.04999995 0.04999995 -0.04999995 0.04999995 0.04999995 0.04999995 -0.04999995 0.04999995 0.04999995 0.04999995</float_array>
           <technique_common>
             <accessor source="#Cube-mesh-positions-array" count="8" stride="3">
               <param name="X" type="float"/>
